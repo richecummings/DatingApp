@@ -14,8 +14,7 @@ import { UserService } from 'src/app/_services/user.service';
 export class MemberDetailComponent implements OnInit {
   user: User;
   galleryOptions: NgxGalleryOptions[];
-  galleryImages: NgxGalleryImage[];
-  
+  galleryImages: NgxGalleryImage[]; 
 
   constructor(private userService: UserService, private alertify: AlertifyService, private route: ActivatedRoute) { }
 
