@@ -21,7 +21,6 @@ namespace DatingApp.API.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
-        private readonly IAuthRepository _repository;
         private readonly IConfiguration _config;
 
         private readonly IMapper _mapper;
@@ -39,18 +38,18 @@ namespace DatingApp.API.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register(UserForRegisterDto userForRegisterDto)
         {
-            userForRegisterDto.Username = userForRegisterDto.Username.ToLower();
-
-            if (await _repository.UserExists(userForRegisterDto.Username))
-                return BadRequest("Username already exists");
-
             var userToCreate = _mapper.Map<User>(userForRegisterDto);
 
-            var createdUser = await _repository.Register(userToCreate, userForRegisterDto.Password);
+            var result = await _userManager.CreateAsync(userToCreate, userForRegisterDto.Password);
 
-            var userToReturn = _mapper.Map<UserForDetailedDto>(createdUser);
+            var userToReturn = _mapper.Map<UserForDetailedDto>(userToCreate);
 
-            return CreatedAtRoute("GetUser", new { controller = "Users", id = createdUser.Id }, userToReturn);
+            if (result.Succeeded)
+            {
+                return CreatedAtRoute("GetUser", new { controller = "Users", id = userToCreate.Id }, userToReturn);
+            }
+
+            return BadRequest(result.Errors);
         }
 
         [HttpPost("login")]
