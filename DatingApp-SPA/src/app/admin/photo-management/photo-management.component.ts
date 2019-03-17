@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { AdminService } from 'src/app/_services/admin.service';
 import { Photo } from 'src/app/_models/photo';
-import { UserService } from 'src/app/_services/user.service';
 import { AlertifyService } from 'src/app/_services/alertify.service';
 
 @Component({
@@ -13,7 +12,7 @@ import { AlertifyService } from 'src/app/_services/alertify.service';
 export class PhotoManagementComponent implements OnInit {
   photos: Photo[];
 
-  constructor(private adminService: AdminService, private userService: UserService, private alertify: AlertifyService) { }
+  constructor(private adminService: AdminService, private alertify: AlertifyService) { }
 
   ngOnInit() {
     this.getPhotosForModeration();
@@ -38,7 +37,7 @@ export class PhotoManagementComponent implements OnInit {
   }
 
   reject(userId: number, id: number) {
-    this.userService.deletePhoto(userId, id).subscribe(() => {
+    this.adminService.rejectPhoto(userId, id).subscribe(() => {
       this.photos.splice(this.photos.findIndex(p => p.id === id), 1);
       this.alertify.success('Photo rejected');
     }, error => {
