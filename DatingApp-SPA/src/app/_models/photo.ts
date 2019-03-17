@@ -1,3 +1,5 @@
+import { User } from './user';
+
 export interface Photo {
     id: number;
     url: string;
@@ -5,5 +7,5 @@ export interface Photo {
     dateAdded: Date;
     isMain: boolean;
     isApproved: boolean;
-    userName?: string;
+    user?: User;
 }

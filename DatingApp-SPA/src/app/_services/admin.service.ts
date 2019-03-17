@@ -25,4 +25,8 @@ export class AdminService {
     return this.http.get<Photo[]>(this.baseUrl + 'admin/photosForModeration');
   }
 
+  approvePhoto(id: number) {
+    return this.http.post(this.baseUrl + 'admin/approve/' + id, {});
+  }
+
 }

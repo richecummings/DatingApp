@@ -9,6 +9,11 @@ using Microsoft.AspNetCore.Identity;
 using DatingApp.API.Models;
 using AutoMapper;
 using System.Collections.Generic;
+using System.Security.Claims;
+using CloudinaryDotNet.Actions;
+using CloudinaryDotNet;
+using Microsoft.Extensions.Options;
+using DatingApp.API.Helpers;
 
 namespace DatingApp.API.Controllers
 {
@@ -19,11 +24,22 @@ namespace DatingApp.API.Controllers
         private readonly DataContext _context;
         private readonly UserManager<User> _userManager;
         private readonly IMapper _mapper;
-        public AdminController(DataContext context, UserManager<User> userManager, IMapper mapper)
+        private readonly IOptions<CloudinarySettings> _cloudinaryConfig;
+        private Cloudinary _cloudinary;
+        public AdminController(DataContext context, UserManager<User> userManager, IMapper mapper, IOptions<CloudinarySettings> cloudinaryConfig)
         {
             _mapper = mapper;
             _userManager = userManager;
             _context = context;
+            _cloudinaryConfig = cloudinaryConfig;
+
+            Account acc = new Account(
+                _cloudinaryConfig.Value.CloudName,
+                _cloudinaryConfig.Value.ApiKey,
+                _cloudinaryConfig.Value.ApiSecret
+            );
+
+            _cloudinary = new Cloudinary(acc);
         }
 
         [Authorize(Policy = "RequireAdminRole")]
@@ -83,7 +99,7 @@ namespace DatingApp.API.Controllers
         }
 
         [Authorize(Policy = "ModeratePhotoRole")]
-        [HttpPut("approve/{id}")]
+        [HttpPost("approve/{id}")]
         public async Task<IActionResult> ApprovePhoto(int id)
         {
             var photo = await _context.Photos.Where(p => p.Id == id).IgnoreQueryFilters().FirstOrDefaultAsync();
@@ -95,6 +111,47 @@ namespace DatingApp.API.Controllers
             }
 
             return BadRequest("Could not approve photo");
+        }
+
+        [Authorize(Policy = "ModeratePhotoRole")]
+        [HttpDelete("reject/{userId}/{id}")]
+        public async Task<IActionResult> RejectPhoto(int userId, int id)
+        {
+            var user = await _context.Users
+                .Where(u => u.Id == userId)
+                .Include(u => u.Photos)
+                .IgnoreQueryFilters()
+                .FirstOrDefaultAsync();
+
+            if (!user.Photos.Any(p => p.Id == id))
+                return Unauthorized();
+            
+            var photoFromRepo = await _context.Photos.IgnoreQueryFilters().Where(p => p.Id == id).FirstOrDefaultAsync();
+
+            if (photoFromRepo.IsMain)
+                return BadRequest("You cannot delete your main photo");
+
+            if (photoFromRepo.PublicId != null)
+            {
+                var deleteParams = new DeletionParams(photoFromRepo.PublicId);
+
+                var result = _cloudinary.Destroy(deleteParams);
+
+                if (result.Result == "ok")
+                {
+                    _context.Remove(photoFromRepo);
+                }
+            }
+
+            if (photoFromRepo.PublicId == null)
+            {
+                _context.Remove(photoFromRepo);
+            }
+
+            if (await _context.SaveChangesAsync() > 0)
+                return Ok();
+            
+            return BadRequest("Failed to delete the photo");
         }
     }
 }

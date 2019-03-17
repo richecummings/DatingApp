@@ -1,5 +1,4 @@
 using System;
-using DatingApp.API.Models;
 
 namespace DatingApp.API.Dtos
 {
@@ -19,6 +18,6 @@ namespace DatingApp.API.Dtos
 
         public bool IsApproved { get; set; }
 
-        public string UserName { get; set; }
+        public UserForListDto User { get; set; }
     }
 }
