@@ -10,7 +10,7 @@ export class HasRoleDirective implements OnInit {
 
   constructor(private viewContainerRef: ViewContainerRef, private templateRef: TemplateRef<any>,
               private authService: AuthService) { }
-  
+
   ngOnInit() {
     const userRoles = this.authService.decodedToken.role as Array<string>;
     // if no roles clear the viewContainerRef

@@ -11,3 +11,20 @@ img.img-thumbnail {
 input[type=file] {
     color: transparent;
 }
+
+.img-container {
+    position: relative;
+    height: 100px;
+    width: 100px;
+}
+
+.img-overlay {
+    position: absolute;
+    text-align: center;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    color: red;
+    background: rgba(255, 255, 255, 0.6);
+}
