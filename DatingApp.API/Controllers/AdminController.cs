@@ -7,6 +7,8 @@ using Microsoft.EntityFrameworkCore;
 using DatingApp.API.Dtos;
 using Microsoft.AspNetCore.Identity;
 using DatingApp.API.Models;
+using AutoMapper;
+using System.Collections.Generic;
 
 namespace DatingApp.API.Controllers
 {
@@ -16,8 +18,10 @@ namespace DatingApp.API.Controllers
     {
         private readonly DataContext _context;
         private readonly UserManager<User> _userManager;
-        public AdminController(DataContext context, UserManager<User> userManager)
+        private readonly IMapper _mapper;
+        public AdminController(DataContext context, UserManager<User> userManager, IMapper mapper)
         {
+            _mapper = mapper;
             _userManager = userManager;
             _context = context;
         }
@@ -53,7 +57,7 @@ namespace DatingApp.API.Controllers
 
             var selectedRoles = roleEditDto.RoleNames;
 
-            selectedRoles = selectedRoles ?? new string[] {};
+            selectedRoles = selectedRoles ?? new string[] { };
             var result = await _userManager.AddToRolesAsync(user, selectedRoles.Except(userRoles));
 
             if (!result.Succeeded)
@@ -69,9 +73,21 @@ namespace DatingApp.API.Controllers
 
         [Authorize(Policy = "ModeratePhotoRole")]
         [HttpGet("photosForModeration")]
-        public IActionResult GetPhotosForModeration()
+        public async Task<IActionResult> GetPhotosForModeration()
         {
-            return Ok("Admins or moderators can see this");
+            var photos = await _context.Photos.Where(p => !p.IsApproved).Include(u => u.User).IgnoreQueryFilters().ToListAsync();
+
+            var photosToReturn = _mapper.Map<IEnumerable<PhotoForReturnDto>>(photos);
+
+            // var users = await _context.Users
+            //     .Where(u => u.Photos.Where(p => !p.IsApproved).Any())
+            //     .Include(u => u.Photos)
+            //     .IgnoreQueryFilters()
+            //     .ToListAsync();
+
+            // var usersToReturn = _mapper.Map<IEnumerable<UserForDetailedDto>>(users);
+
+            return Ok(photosToReturn);
         }
     }
 }
