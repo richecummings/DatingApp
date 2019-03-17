@@ -16,7 +16,7 @@ export class MemberDetailComponent implements OnInit {
   @ViewChild('memberTabs') memberTabs: TabsetComponent;
   user: User;
   galleryOptions: NgxGalleryOptions[];
-  galleryImages: NgxGalleryImage[]; 
+  galleryImages: NgxGalleryImage[];
 
   constructor(private userService: UserService, private alertify: AlertifyService, private route: ActivatedRoute) { }
 
@@ -46,12 +46,14 @@ export class MemberDetailComponent implements OnInit {
   getImages() {
     const imageUrls = [];
     for (let i = 0; i < this.user.photos.length; i++) {
-      imageUrls.push({
-        small: this.user.photos[i].url,
-        medium: this.user.photos[i].url,
-        big: this.user.photos[i].url,
-        description: this.user.photos[i].description
-      });
+      if (this.user.photos[i].isApproved) {
+        imageUrls.push({
+          small: this.user.photos[i].url,
+          medium: this.user.photos[i].url,
+          big: this.user.photos[i].url,
+          description: this.user.photos[i].description
+        });
+      }
     }
     return imageUrls;
   }
