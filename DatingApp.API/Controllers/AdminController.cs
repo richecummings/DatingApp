@@ -79,15 +79,22 @@ namespace DatingApp.API.Controllers
 
             var photosToReturn = _mapper.Map<IEnumerable<PhotoForReturnDto>>(photos);
 
-            // var users = await _context.Users
-            //     .Where(u => u.Photos.Where(p => !p.IsApproved).Any())
-            //     .Include(u => u.Photos)
-            //     .IgnoreQueryFilters()
-            //     .ToListAsync();
-
-            // var usersToReturn = _mapper.Map<IEnumerable<UserForDetailedDto>>(users);
-
             return Ok(photosToReturn);
+        }
+
+        [Authorize(Policy = "ModeratePhotoRole")]
+        [HttpPut("approve/{id}")]
+        public async Task<IActionResult> ApprovePhoto(int id)
+        {
+            var photo = await _context.Photos.Where(p => p.Id == id).IgnoreQueryFilters().FirstOrDefaultAsync();
+            photo.IsApproved = true;
+            
+            if (await _context.SaveChangesAsync() > 0)
+            {
+                return NoContent();
+            }
+
+            return BadRequest("Could not approve photo");
         }
     }
 }
