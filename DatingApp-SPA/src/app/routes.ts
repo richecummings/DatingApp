@@ -28,7 +28,7 @@ export const appRoutes: Routes = [
             },
             {
                 path: 'members/:id',
-                component: MemberDetailComponent,
+                component: MemberDetailComponent, 
                 resolve: { user: MemberDetailResolver }
             },
             {
